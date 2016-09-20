@@ -1,0 +1,263 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+	<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>jQuery EasyUI</title>
+	<link href="css/default.css" rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" type="text/css" href="js/jquery-easyui-1.5/themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="js/jquery-easyui-1.5/themes/icon.css">
+	<script type="text/javascript" src="js/jquery-easyui-1.5/jquery.min.js"></script>
+	<script type="text/javascript" src="js/jquery-easyui-1.5/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="js/outlook2.js"> </script>
+	<script>
+	var url;
+	$(function(){
+		//datagrid初始化   
+	    $('#tt').datagrid({   
+	        title:'员工信息列表',   
+	        iconCls:'icon-edit',//图标  
+	        width: 'auto',
+	       // width: 990,   
+	        height: 581,//'auto',   
+	        nowrap: false, //单元格内容不换行
+	        striped: true, //  隔行变色
+	        border: true, //  边框
+	        collapsible:false,//是否可折叠的   
+	       	//fit: true,//自动大小  
+	       	//pageSize: 30,
+	       	//pageList: [30, 50, 100],
+	        url:'listIP.action',   
+	        //sortName: 'code',   //
+	        //sortOrder: 'desc',  // 
+	        remoteSort:false, // 默认为true，如果如果是对本地数据排序必须设置为false  
+	        fitColumns:true,//自动使列适应表格宽度以防止出现水平滚动。 
+	        idField:'t_id',  // 主键,选择的时候取值用
+	        singleSelect:false,//是否单选   
+	        pagination:true,//分页控件   
+	        rownumbers:true,//行号   
+	        frozenColumns:[[   //列数过多时，冻结一列，向右侧滚动方便显示
+	            {field:'ck',checkbox:true}   
+	        ]],   
+	        toolbar: [{   
+	            text: '添加',   
+	            iconCls: 'icon-add',   
+	            handler: function() {   //单击触发的事件
+	                //openDialog("add_dialog","add");   
+	            	//alert('add')
+	            	 $('#dlg').dialog('open').dialog('setTitle','New User');
+	                 $('#fm').form('clear');
+	                 $('#t_id').attr("disabled", false);
+	                 $('#t_id').validatebox({ required:true });
+	                 url = 'AddUser.action';	                 
+	            }   
+	        }, '-', {   
+	            text: '修改',   
+	            iconCls: 'icon-edit',   
+	            handler: function() {   
+	                //openDialog("add_dialog","edit");   
+	            	//alert('edit')
+	            	var rows = $('#tt').datagrid('getSelections');
+	            	
+	                 if (rows.length==1){
+	                	// alert(rows[0].t_id);
+	                     $('#dlg').dialog('open').dialog('setTitle','Edit User');
+	                     $('#fm').form('load',rows[0]);
+	                     $('#t_id').attr("disabled", "disabled");
+	                     $('#t_name').validatebox({ required:true });
+	                     url = 'EditUser.action?id='+rows[0].t_id;
+	                 }else{
+	                	 $.messager.alert('Error Message','请先选择一条数据!','error');
+	                 }
+	            }   
+	        }, '-',{   
+	            text: '删除',   
+	            iconCls: 'icon-remove',   
+	            handler:removeUser         
+	        }]  
+	    });   
+	    //设置分页控件   
+	    var p = $('#tt').datagrid('getPager');
+	    if(p){
+	    $(p).pagination({   
+	        pageSize: 10,//每页显示的记录条数，默认为10   
+	        pageList: [10,20,30],//可以设置每页记录条数的列表   
+	        beforePageText: '第',//页数文本框前显示的汉字   
+	        afterPageText: '页    共 {pages} 页',   
+	        displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录'  
+	        /*onBeforeRefresh:function(){  
+	            $(this).pagination('loading'); //正在加载数据中...
+	            alert('before refresh');  
+	            $(this).pagination('loaded');  //数据加载完毕
+	        }*/  
+	    }); }
+	});
+	
+	 function removeUser(){
+         var row = $('#tt').datagrid('getSelected');
+         alert(row.t_id);
+         if (row){
+             $.messager.confirm('Confirm','你确定要删除这条数据吗?',function(r){
+                 if (r){
+                     $.post('removeUser.action',{id:row.t_id},function(result){
+                         if (result.success){
+                             $('#tt').datagrid('reload');    // reload the user data
+                             $('#tt').datagrid('clearSelections');//清除所有选中行
+                             $.messager.show({
+                                 title: 'Message',
+                                 msg: '删除成功！',
+                                 showType:'fade',
+                                 timeout:2000,
+                     			 style:{
+                     				right:'',
+                     				bottom:''
+                     			}
+                             });
+                         } else {
+                             $.messager.show({    // show error message
+                                 title: 'Error',
+                                 msg: result.msg,
+                                 showType:'fade',
+                                 timeout:2000,
+                     			style:{
+                     				right:'',
+                     				bottom:''
+                     			}
+                             });
+                         }
+                     },'json');
+                 }
+             });
+         }
+     }
+
+	
+	function saveUser(){
+        $('#fm').form('submit',{
+            url: url,
+            onSubmit: function(){
+                return $(this).form('validate');//用户点击按钮提交表单时，如果表单无效则阻止表单提交。 需要设置的验证都通过
+            },
+            success: function(result){
+                var result = eval('('+result+')');
+                if (result.success){
+                    $('#dlg').dialog('close');        // close the dialog
+                    $('#tt').datagrid('reload');    // reload the user data
+                    $.messager.show({
+                        title: 'Message',
+                        msg: '操作成功',
+                        showType:'fade',
+                        timeout:2000,
+            			style:{
+            				right:'',
+            				bottom:''
+            			}
+
+                    });
+                } else {
+                    $.messager.show({
+                        title: 'Error',
+                        msg: result.msg,
+                        showType:'fade',
+                        timeout:2000,
+            			style:{
+            				right:'',
+            				bottom:''
+            			}
+                    });
+                }
+            }
+        });
+    }
+
+	</script>
+	 <style type="text/css">
+        #fm{
+            margin:0;
+            padding:10px 30px;
+        }
+        .ftitle{
+            font-size:14px;
+            font-weight:bold;
+            color:#666;
+            padding:5px 0;
+            margin-bottom:10px;
+            border-bottom:1px solid #ccc;
+        }
+        .fitem{
+            margin-bottom:5px;
+        }
+        .fitem label{
+            display:inline-block;
+            width:80px;
+        }
+    </style>
+
+	
+	</head>
+	<body style="margin: 0px">
+    <table id="tt"  cellspacing="0" cellpadding="0" class="easyui-datagrid">   
+    	<thead>   
+        	<tr>   
+            	<th field="t_id" width="100">员工编号</th>   
+            	<th field="t_name" width="100">姓名</th>   
+            	<th field="t_email" width="115">邮箱</th>   
+            	<th field="t_inip" width="100">内网IP</th>   
+            	<th field="t_outip" width="100">外网IP</th>   
+            	<th field="t_mac" width="100">MAC地址</th> 
+            	<th field="t_dept" width="100">所属部门</th> 
+            	<th field="t_team" width="100">所属团队</th> 
+        	</tr>   
+    	</thead>   
+    
+    
+    </table>
+    <div id="dlg" class="easyui-dialog" style="width: 360px; height: 380px; padding: 10px 20px;"
+       closed="true" buttons="#dlg-buttons"  data-options="collapsible: true,  minimizable: true,  maximizable: true, iconCls:'icon-edit',resizable:true,modal:true">
+       <div class="ftitle">信息编辑</div> 
+       <form id="fm" method="post"> 
+       <div class="fitem"> 
+           <label>员工编号</label> 
+           <input name="t_id" class="easyui-validatebox" required="true" id="t_id"/> 
+       </div> 
+       <div class="fitem"> 
+           <label>姓名</label> 
+           <input name="t_name" class="easyui-validatebox" required="true" /> 
+       </div> 
+       <div class="fitem"> 
+           <label>邮箱</label> 
+           <input name="t_email" class="easyui-validatebox"  validType="email"/> 
+       </div> 
+       <div class="fitem"> 
+           <label>内网地址</label> 
+           <input name="t_inip" class="easyui-validatebox"  /> 
+       </div> 
+       <div class="fitem"> 
+           <label>外网地址</label> 
+           <input name="t_outip" class="easyui-validatebox" /> 
+       </div> 
+       <div class="fitem"> 
+           <label>MAC地址</label> 
+           <input name="t_mac" class="easyui-validatebox" /> 
+       </div> 
+       <div class="fitem"> 
+           <label>所属团队</label> 
+           <input name="t_dept" class="easyui-validatebox" /> 
+       </div> 
+       <div class="fitem"> 
+           <label>所属部门</label> 
+           <input name="t_team" class="easyui-validatebox" /> 
+       </div> 
+       <input type="hidden" name="action" id="hidtype" /> 
+       <input type="hidden" name="t_id" id="rowid" /> 
+       </form> 
+   </div> 
+
+    <div id="dlg-buttons"> 
+        <a href="javascript:void(0)" class="easyui-linkbutton" onclick="saveUser()" iconcls="icon-save">保存</a> 
+        <a href="javascript:void(0)" class="easyui-linkbutton" onclick="javascript:$('#dlg').dialog('close')"
+            iconcls="icon-cancel">取消</a> 
+    </div> 
+
+</body>
+</html>

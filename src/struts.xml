@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.1//EN"
+	"http://struts.apache.org/dtds/struts-2.1.dtd">
+<struts>
+	<package name="helloworld" extends="struts-default" namespace="/">
+		<action name="welcome"	class="com.action.WelcomeAction">
+			<result name="success">/WEB-INF/jsp/welcome.jsp</result>
+		</action>
+	</package>
+
+	<package name="showip" extends="json-default" namespace="/">   
+        <action name="listIP" class="com.action.ListIpAction" method="listIP">   
+            <result name="success" type="json"> <!-- result的职责是生成视图（jsp，json，报表，freemarker等） type默认是dispatcher，还有json，redirect-->
+             	<param name="root">result</param>               	
+            </result>   
+        </action>
+		<action name="main" class="com.action.ListIpAction" method="forSend"> 
+		 	<result name="success">/WEB-INF/jsp/Main.jsp</result>                  
+        </action>
+        <action name="tree1">  
+       		<result name="success">/WEB-INF/jsp/menu1/class.html</result>              
+        </action>
+        <action name="AddUser" class="com.action.UserAction" method="addUser"> 
+		 	<result name="success" type="json"> 
+             	<param name="root">result</param>               	
+            </result>                
+        </action> 
+        <action name="EditUser" class="com.action.UserAction" method="EditUser"> 
+		 	<result name="success" type="json"> 
+             	<param name="root">result</param>               	
+            </result>                
+        </action> 
+        <action name="removeUser" class="com.action.UserAction" method="RemoveUser"> 
+		 	<result name="success" type="json"> 
+             	<param name="root">result</param>               	
+            </result>                
+        </action> 
+	</package>
+</struts>

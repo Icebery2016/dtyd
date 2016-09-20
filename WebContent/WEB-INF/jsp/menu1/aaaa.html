@@ -1,0 +1,43 @@
+<script type="text/javascript">
+function editUser(){ 
+	var row = $('#dg').datagrid('getSelected');
+	if (row) { 
+		$('#Div1').dialog('open').dialog('setTitle', 'Edit User');
+		$('#Form1').form('load', row);
+		url = Handler3.ashx; 
+	} 
+}//这个是我修改信息的时候的方法，那么那个.form('load',row)的作用是什么？load如果是加载数据的话数据源是form表单的url锁指向的么？
+function save(){ 
+		$('#Form1').form('submit', { 
+			url: "Handler2.ashx?CourceID" + CourceID + "&CourceName" + CourceName + "&Teacher" + Teacher + "&SCount" + SCount + "&ID" + ID, 
+			onSubmit: function () {
+						return $(this).form('validate');//用户点击按钮提交表单时，如果表单无效则阻止表单提交。 
+					  }, 
+			success: function (result) { 
+						var result = eval('(' + result + ')');
+						if (result.errorMsg) { 
+							$.messager.show({ title: 'Error', msg: result.errorMsg }); } 
+						else {
+							$('#Div1').dialog('close'); // close the dialog 
+							$('#dg').datagrid('reload'); // reload the user data
+							} 
+						} 
+		}); 
+}
+	//这个事修改完成的保存代码， 
+	$('#dg').datagrid('reload');
+	//这个的作用什么？reload如果是加载数据的话数据源是form表单的url锁指向的么？还有就是success方法的返回值问题，如果reload的加载是去form表单的url去获得数据那我success 的返回值怎么写？难道还要在从数据库查一遍然后变成json返回么？
+
+</script>
+
+<!-- 建议你下载一份api看看，同时登陆jeasyui的官网，点击上方的demo，多看看例子
+1 load的作用很明显，你获得了row后，这是一个object，使用load，可以将id为Form1的中的input的name对应上的都赋值，这个作用很实用吧。
+2 url就是form的提交路径，不过你这是赋值操作，为何要加url?这是不应该加。
+3 reload的作用就是重新查询后台，将你刚才修改过的数据重新查询，好显示改变的效果，url是你的datagrid的url。
+4 success的返回值是datagrid的返回值，跟form有什么关系。。。。。注意看ID！！！
+这个代码已经很通俗易懂了，还有注释。我看见好几份这种一模一样的了？莫非你们是一个学校的？
+正常流程是，form提交后，先校验，通过后提交表单，这里的表单的返回值一般就是一个字符串，
+或者一个json。我一般是返回一个json，有status:success,messager:"失败的原因"。
+在form的success里面，我会判断status，
+如果成功，alert成功，关闭dialog，reloadDatagrid，这样就是一个完整的流程了
+ -->
